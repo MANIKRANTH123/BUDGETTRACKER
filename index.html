@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Budget Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f8; }
+    .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 24px; }
+    h1 { text-align: center; color: #2b2d42; }
+    form { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+    form input, form select { flex: 1 1 120px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    form button { flex: 1 1 100%; padding: 10px; background: #2b2d42; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    form button:hover { background: #41436a; }
+    .summary { display: flex; justify-content: space-between; margin-bottom: 16px; padding: 12px; background: #edf2fb; border-radius: 4px; }
+    .summary div { text-align: center; }
+    .summary strong { display: block; font-size: 1.2em; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    li { background: #f8f9fa; margin-bottom: 8px; padding: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+    .income { color: #008000; }
+    .expense { color: #d90429; }
+    .item-info { flex: 1; }
+    .delete-btn { background: none; border: none; color: #d90429; font-size: 1.1em; cursor: pointer; }
+    @media (max-width: 600px) {
+      .container { padding: 12px; }
+      form { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Budget Tracker</h1>
+    <form id="item-form">
+      <select id="type">
+        <option value="income">Income</option>
+        <option value="expense">Expense</option>
+      </select>
+      <input type="number" id="amount" placeholder="Amount" min="0.01" step="0.01" required>
+      <input type="text" id="category" placeholder="Category" maxlength="20" required>
+      <input type="text" id="description" placeholder="Description" maxlength="40">
+      <button type="submit">Add Item</button>
+    </form>
+    <div class="summary">
+      <div>
+        <strong id="total-income">£0.00</strong>
+        Income
+      </div>
+      <div>
+        <strong id="total-expense">£0.00</strong>
+        Expenses
+      </div>
+      <div>
+        <strong id="balance">£0.00</strong>
+        Balance
+      </div>
+    </div>
+    <ul id="items-list"></ul>
+  </div>
+  <script>
+    // Helper: format number as GBP
+    function formatGBP(num) {
+      return '£' + Number(num).toLocaleString('en-GB', {minimumFractionDigits:2, maximumFractionDigits:2});
+    }
+
+    // LocalStorage key
+    const STORAGE_KEY = 'budget_items_v1';
+
+    // Load items from localStorage or empty array
+    function loadItems() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    // Save items to localStorage
+    function saveItems(items) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    // Render summary and list
+    function render() {
+      const items = loadItems();
+      let income = 0, expense = 0;
+      const list = document.getElementById('items-list');
+      list.innerHTML = '';
+      items.forEach((item, idx) => {
+        if (item.type === 'income') income += Number(item.amount);
+        else expense += Number(item.amount);
+
+        const li = document.createElement('li');
+        li.className = item.type;
+        li.innerHTML = `
+          <span class="item-info">
+            <b>${item.type === 'income' ? '+' : '-'}${formatGBP(item.amount)}</b>
+            [${item.category}] - ${item.description || '(No description)'}
+          </span>
+          <button class="delete-btn" title="Delete" data-idx="${idx}">&times;</button>
+        `;
+        list.appendChild(li);
+      });
+      document.getElementById('total-income').textContent = formatGBP(income);
+      document.getElementById('total-expense').textContent = formatGBP(expense);
+      document.getElementById('balance').textContent = formatGBP(income - expense);
+    }
+
+    // Add item handler
+    document.getElementById('item-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const type = document.getElementById('type').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const category = document.getElementById('category').value.trim();
+      const description = document.getElementById('description').value.trim();
+      if (!amount || amount <= 0 || !category) return;
+      const items = loadItems();
+      items.push({ type, amount, category, description });
+      saveItems(items);
+      this.reset();
+      render();
+    });
+
+    // Delete item handler (event delegation)
+    document.getElementById('items-list').addEventListener('click', function(e) {
+      if (e.target.classList.contains('delete-btn')) {
+        const idx = e.target.getAttribute('data-idx');
+        const items = loadItems();
+        items.splice(idx, 1);
+        saveItems(items);
+        render();
+      }
+    });
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>
