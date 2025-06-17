@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Personal Assistant Web App</title>
+  <style>
+    /* ====== THEME STYLES (Light, Dark, Ocean) ====== */
+    :root {
+      --primary: #4f8cff;
+      --secondary: #f5f6fa;
+      --accent: #ffd166;
+      --dark: #22223b;
+      --light: #f8f9fa;
+      --success: #06d6a0;
+      --danger: #ef476f;
+      --bg: var(--secondary);
+      --text: var(--dark);
+      --card: #fff;
+      --border: #e0e0e0;
+      --input: #fff;
+    }
+    [data-theme="dark"] {
+      --primary: #4f8cff;
+      --secondary: #22223b;
+      --accent: #ffd166;
+      --dark: #f5f6fa;
+      --light: #22223b;
+      --success: #06d6a0;
+      --danger: #ef476f;
+      --bg: #181a2a;
+      --text: #f5f6fa;
+      --card: #23243a;
+      --border: #33344a;
+      --input: #23243a;
+    }
+    [data-theme="ocean"] {
+      --primary: #00b4d8;
+      --secondary: #caf0f8;
+      --accent: #ffb703;
+      --dark: #023047;
+      --light: #caf0f8;
+      --success: #06d6a0;
+      --danger: #ef476f;
+      --bg: #caf0f8;
+      --text: #023047;
+      --card: #e0fbfc;
+      --border: #90e0ef;
+      --input: #e0fbfc;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 32px auto 16px auto;
+      background: var(--card);
+      padding: 32px 20px 22px 20px;
+      border-radius: 18px;
+      box-shadow: 0 4px 32px rgba(79,140,255,0.09);
+      transition: background 0.3s, color 0.3s;
+    }
+    h1, h2, h3 {
+      color: var(--primary);
+      margin-top: 0;
+    }
+    nav {
+      display: flex;
+      gap: 18px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    nav button {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.1em;
+      cursor: pointer;
+      padding: 7px 13px;
+      border-radius: 5px;
+      transition: background 0.2s;
+    }
+    nav button.active, nav button:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    .theme-switcher {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .theme-btn {
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      outline: 2px solid transparent;
+      transition: outline 0.2s;
+    }
+    .theme-btn.active { outline: 2px solid var(--primary);}
+    .theme-light { background: #f5f6fa; }
+    .theme-dark { background: #181a2a; }
+    .theme-ocean { background: #00b4d8; }
+    .dashboard {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+    .card {
+      flex: 1 1 250px;
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+      padding: 18px;
+      margin-bottom: 20px;
+      min-width: 220px;
+      transition: background 0.3s, color 0.3s;
+      position: relative;
+    }
+    .card h3 { margin-top: 0; margin-bottom: 10px; color: var(--primary);}
+    .task-list, .note-list, .budget-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 170px;
+      overflow-y: auto;
+    }
+    .task-list li, .note-list li, .budget-list li {
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .task-list li:last-child, .note-list li:last-child, .budget-list li:last-child {
+      border-bottom: none;
+    }
+    .badge {
+      background: var(--accent);
+      color: var(--dark);
+      border-radius: 5px;
+      padding: 2px 7px;
+      font-size: 0.85em;
+      margin-left: 7px;
+    }
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 7px 14px;
+      cursor: pointer;
+      font-size: 1em;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+    .btn.danger { background: var(--danger); }
+    .btn.success { background: var(--success); }
+    .btn.small { padding: 3px 8px; font-size: 0.9em; }
+    .flex-row { display: flex; gap: 10px; align-items: center; }
+    .input-group { margin-bottom: 11px; }
+    label { display: block; margin-bottom: 4px; font-weight: 500; }
+    input, select, textarea {
+      width: 100%;
+      padding: 7px 10px;
+      margin-bottom: 6px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 1em;
+      box-sizing: border-box;
+      background: var(--input);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    textarea { resize: vertical; min-height: 50px; }
+    .quote {
+      font-style: italic;
+      color: var(--primary);
+      background: #eaf4ff;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .tooltip {
+      border-bottom: 1px dotted var(--primary);
+      cursor: help;
+      position: relative;
+    }
+    .tooltip:hover:after {
+      content: attr(data-tip);
+      position: absolute;
+      left: 0; top: 120%;
+      background: var(--dark);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      white-space: pre;
+      font-size: 0.97em;
+      z-index: 10;
+      min-width: 120px;
+    }
+    .loading {
+      text-align: center;
+      color: var(--primary);
+      font-size: 1.1em;
+      padding: 12px 0;
+    }
+    .heatmap {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      margin-top: 6px;
+    }
+    .heatmap-day {
+      width: 18px; height: 18px;
+      border-radius: 3px;
+      background: #e0e0e0;
+      display: inline-block;
+      margin: 1px;
+      transition: background 0.3s;
+    }
+    .heatmap-day.level-1 { background: #bde0fe;}
+    .heatmap-day.level-2 { background: #90e0ef;}
+    .heatmap-day.level-3 { background: #00b4d8;}
+    .heatmap-day.level-4 { background: #0077b6;}
+    .badge.achieve { background: var(--success); color: #fff;}
+    .badge.streak { background: var(--primary); color: #fff;}
+    .badge.points { background: var(--accent);}
+    @media (max-width: 900px) {
+      .dashboard { flex-direction: column; }
+      .container { padding: 10px; }
+    }
+    @media (max-width: 600px) {
+      .container { padding: 6px;}
+      nav { flex-direction: column; gap: 5px;}
+      .card { min-width: unset;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <h1>Personal Assistant Web App</h1>
+    <nav>
+      <button id="nav-dashboard" class="active" onclick="showSection('dashboard')">Dashboard</button>
+      <button id="nav-tasks" onclick="showSection('tasks')">Tasks</button>
+      <button id="nav-budget" onclick="showSection('budget')">Budget</button>
+      <button id="nav-notes" onclick="showSection('notes')">Notes</button>
+      <div class="theme-switcher" title="Switch Theme">
+        <span class="tooltip" data-tip="Switch Theme">🎨</span>
+        <button class="theme-btn theme-light" onclick="setTheme('light')" id="theme-light"></button>
+        <button class="theme-btn theme-dark" onclick="setTheme('dark')" id="theme-dark"></button>
+        <button class="theme-btn theme-ocean" onclick="setTheme('ocean')" id="theme-ocean"></button>
+      </div>
+    </nav>
+    <!-- DASHBOARD -->
+    <div id="section-dashboard">
+      <div class="quote" id="dailyQuote"></div>
+      <div class="dashboard">
+        <div class="card">
+          <h3>Upcoming Tasks</h3>
+          <ul class="task-list" id="dashboardTasks"></ul>
+          <div id="dashboardTaskStats"></div>
+          <canvas id="taskHeatmap" width="140" height="42" style="width:100%;max-width:170px;"></canvas>
+        </div>
+        <div class="card">
+          <h3>Budget Overview</h3>
+          <div id="dashboardBudget"></div>
+          <canvas id="budgetChart" width="200" height="80" style="width:100%;max-width:220px;"></canvas>
+          <div id="budgetAdvice"></div>
+        </div>
+        <div class="card">
+          <h3>Recent Notes</h3>
+          <ul class="note-list" id="dashboardNotes"></ul>
+          <div id="dashboardRelatedNotes"></div>
+        </div>
+        <div class="card">
+          <h3>Achievements</h3>
+          <div id="dashboardAchievements"></div>
+        </div>
+      </div>
+    </div>
+    <!-- TASKS -->
+    <div id="section-tasks" style="display:none">
+      <h2>Task Management</h2>
+      <form id="taskForm">
+        <div class="input-group">
+          <label>Task</label>
+          <input type="text" id="taskTitle" required/>
+        </div>
+        <div class="input-group">
+          <label>Due Date</label>
+          <input type="date" id="taskDue"/>
+        </div>
+        <div class="input-group">
+          <label>Priority <span class="tooltip" data-tip="Let the assistant suggest!">💡</span></label>
+          <select id="taskPriority">
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+            <option value="smart">Smart Suggestion</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Category</label>
+          <input type="text" id="taskCategory"/>
+        </div>
+        <div class="input-group">
+          <label>Recurring</label>
+          <select id="taskRecurring">
+            <option value="">None</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Template <span class="tooltip" data-tip="Pick a template to quickly add tasks!">📋</span></label>
+          <select id="taskTemplate">
+            <option value="">None</option>
+          </select>
+        </div>
+        <button class="btn success" type="submit">Add Task</button>
+      </form>
+      <div style="margin-bottom:8px;">
+        <button class="btn small" onclick="saveTaskTemplate()">Save as Template</button>
+        <button class="btn small" onclick="deleteTaskTemplate()">Delete Template</button>
+      </div>
+      <h3>Your Tasks</h3>
+      <ul class="task-list" id="taskList"></ul>
+      <div id="taskStats"></div>
+      <div id="taskSmartAdvice"></div>
+      <div>
+        <span class="badge streak" id="taskStreak"></span>
+        <span class="badge points" id="taskPoints"></span>
+      </div>
+    </div>
+    <!-- BUDGET -->
+    <div id="section-budget" style="display:none">
+      <h2>Budget Tracker</h2>
+      <form id="budgetForm">
+        <div class="input-group">
+          <label>Type</label>
+          <select id="budgetType">
+            <option>Income</option>
+            <option>Expense</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Amount</label>
+          <input type="number" id="budgetAmount" required min="1"/>
+        </div>
+        <div class="input-group">
+          <label>Category</label>
+          <input type="text" id="budgetCategory"/>
+        </div>
+        <div class="input-group">
+          <label>Month</label>
+          <input type="month" id="budgetMonth"/>
+        </div>
+        <button class="btn success" type="submit">Add Entry</button>
+      </form>
+      <div style="margin-bottom:8px;">
+        <button class="btn small" onclick="setBudgetGoalPrompt()">Set Monthly Goal</button>
+      </div>
+      <h3>Entries</h3>
+      <ul class="budget-list" id="budgetList"></ul>
+      <div id="budgetOverview"></div>
+      <canvas id="budgetModuleChart" width="360" height="100" style="width:100%;max-width:380px;"></canvas>
+      <div id="budgetModuleAdvice"></div>
+    </div>
+    <!-- NOTES -->
+    <div id="section-notes" style="display:none">
+      <h2>Notes</h2>
+      <form id="noteForm">
+        <div class="input-group">
+          <label>Title</label>
+          <input type="text" id="noteTitle" required/>
+        </div>
+        <div class="input-group">
+          <label>Content (Markdown supported)</label>
+          <textarea id="noteContent"></textarea>
+        </div>
+        <div class="input-group">
+          <label>Category</label>
+          <input type="text" id="noteCategory"/>
+        </div>
+        <div class="input-group">
+          <label>Tags (comma separated)</label>
+          <input type="text" id="noteTags"/>
+        </div>
+        <div class="input-group">
+          <label>Template</label>
+          <select id="noteTemplate">
+            <option value="">None</option>
+          </select>
+        </div>
+        <button class="btn success" type="submit">Add Note</button>
+      </form>
+      <div style="margin-bottom:8px;">
+        <button class="btn small" onclick="saveNoteTemplate()">Save as Template</button>
+        <button class="btn small" onclick="deleteNoteTemplate()">Delete Template</button>
+      </div>
+      <div class="input-group">
+        <label>Search Notes</label>
+        <input type="text" id="noteSearch" placeholder="Type to search..."/>
+      </div>
+      <ul class="note-list" id="noteList"></ul>
+      <div id="relatedNotes"></div>
+    </div>
+  </div>
+  <script>
+    /* ========== DATA SCHEMA, MIGRATION, AND UTILITIES ========== */
+    const DATA_VERSION = 2;
+    function saveData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+    function loadData(key, def=[]) { 
+      try { return JSON.parse(localStorage.getItem(key)) || def; } catch { return def; }
+    }
+    function migrateData() {
+      let v = Number(localStorage.getItem('data_version')||'1');
+      if (v < DATA_VERSION) {
+        // Example migration: add streak/points if not present
+        let stats = loadData('taskStats', {});
+        if (!('streak' in stats)) stats.streak = 0;
+        if (!('points' in stats)) stats.points = 0;
+        saveData('taskStats', stats);
+        localStorage.setItem('data_version', DATA_VERSION);
+      }
+    }
+    migrateData();
+
+    /* ========== THEME CUSTOMIZATION ========== */
+    const THEMES = ['light', 'dark', 'ocean'];
+    function setTheme(theme) {
+      if (!THEMES.includes(theme)) theme = 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      THEMES.forEach(t => document.getElementById('theme-'+t).classList.toggle('active', t===theme));
+      localStorage.setItem('theme', theme);
+    }
+    function loadTheme() {
+      let t = localStorage.getItem('theme') || 'light';
+      setTheme(t);
+    }
+    loadTheme();
+
+    /* ========== DAILY QUOTES (RECOMMENDATION) ========== */
+    const quotes = [
+      "Success is not the key to happiness. Happiness is the key to success.",
+      "The best way to get started is to quit talking and begin doing.",
+      "Don't watch the clock; do what it does. Keep going.",
+      "The future depends on what you do today.",
+      "Dream big and dare to fail.",
+      "Stay positive, work hard, make it happen.",
+      "Every day is a fresh start."
+    ];
+    function showDailyQuote() {
+      const idx = (new Date()).getDate() % quotes.length;
+      document.getElementById('dailyQuote').textContent = quotes[idx];
+    }
+
+    /* ========== NAVIGATION ========== */
+    function showSection(section) {
+      ['dashboard','tasks','budget','notes'].forEach(s => {
+        document.getElementById('section-'+s).style.display = (s===section) ? '' : 'none';
+        document.getElementById('nav-'+s).classList.toggle('active', s===section);
+      });
+      if(section==='dashboard') renderDashboard();
+      if(section==='tasks') renderTasks();
+      if(section==='budget') renderBudget();
+      if(section==='notes') renderNotes();
+    }
+
+    /* ========== TASK MANAGEMENT MODULE ========== */
+    function getTasks() { return loadData('tasks'); }
+    function setTasks(tasks) { saveData('tasks', tasks); }
+    function getTaskTemplates() { return loadData('taskTemplates'); }
+    function setTaskTemplates(tpls) { saveData('taskTemplates', tpls);}
+    function getTaskStats() { return loadData('taskStats', {streak:0, points:0, lastCompleteDay:''}); }
+    function setTaskStats(stats) { saveData('taskStats', stats);}
+    function addTask(task) {
+      const tasks = getTasks();
+      tasks.push(task);
+      setTasks(tasks);
+      renderTasks();
+      renderDashboard();
+    }
+    function removeTask(idx) {
+      const tasks = getTasks();
+      tasks.splice(idx,1);
+      setTasks(tasks);
+      renderTasks();
+      renderDashboard();
+    }
+    function toggleTaskDone(idx) {
+      const tasks = getTasks();
+      tasks[idx].done = !tasks[idx].done;
+      // Handle recurring
+      if(tasks[idx].done && tasks[idx].recurring) {
+        let nextDate = new Date(tasks[idx].due);
+        if(tasks[idx].recurring==='daily') nextDate.setDate(nextDate.getDate()+1);
+        if(tasks[idx].recurring==='weekly') nextDate.setDate(nextDate.getDate()+7);
+        tasks[idx].due = nextDate.toISOString().split('T')[0];
+        tasks[idx].done = false;
+      }
+      setTasks(tasks);
+      updateTaskStats(tasks[idx].done);
+      renderTasks();
+      renderDashboard();
+    }
+    function updateTaskStats(completed) {
+      let stats = getTaskStats();
+      let today = (new Date()).toISOString().slice(0,10);
+      if(completed) {
+        if(stats.lastCompleteDay === today) {
+          // already completed today
+        } else if(stats.lastCompleteDay === (new Date(Date.now()-86400000)).toISOString().slice(0,10)) {
+          stats.streak += 1;
+        } else {
+          stats.streak = 1;
+        }
+        stats.points += 10;
+        stats.lastCompleteDay = today;
+      }
+      setTaskStats(stats);
+    }
+    function renderTasks() {
+      const tasks = getTasks();
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+      tasks.forEach((t,i) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span>
+            <input type="checkbox" ${t.done?'checked':''} onclick="toggleTaskDone(${i})"/>
+            <b>${t.title}</b> 
+            <span class="badge">${t.priority}</span>
+            ${t.category ? `<span class="badge">${t.category}</span>` : ''}
+            ${t.due ? `<span class="badge">${t.due}</span>` : ''}
+            ${t.recurring ? `<span class="badge">${t.recurring}</span>` : ''}
+          </span>
+          <button class="btn small danger" onclick="removeTask(${i})">Delete</button>
+        `;
+        list.appendChild(li);
+      });
+      // Stats
+      const total = tasks.length;
+      const done = tasks.filter(t=>t.done).length;
+      document.getElementById('taskStats').innerHTML = 
+        `<b>Completion:</b> ${done}/${total} (${total?Math.round(100*done/total):0}%)`;
+      // Smart suggestion
+      document.getElementById('taskSmartAdvice').innerHTML = smartTaskAdvice(tasks);
+      // Streak & Points
+      let stats = getTaskStats();
+      document.getElementById('taskStreak').textContent = `🔥 Streak: ${stats.streak} days`;
+      document.getElementById('taskPoints').textContent = `⭐ Points: ${stats.points}`;
+      // Templates
+      renderTaskTemplates();
+    }
+    function smartTaskAdvice(tasks) {
+      // Suggest which tasks to do next, and recommend priorities for new tasks
+      if(!tasks.length) return '';
+      let urgent = tasks.filter(t=>!t.done && t.due && daysLeft(t.due)<=1);
+      let overdue = tasks.filter(t=>!t.done && t.due && daysLeft(t.due)<0);
+      let advice = '';
+      if(overdue.length) advice += `<span class="badge danger">Overdue: ${overdue.length}</span> `;
+      if(urgent.length) advice += `<span class="badge">Due Soon: ${urgent.length}</span> `;
+      // Suggest priority for new task
+      let recent = tasks.filter(t=>t.done && t.due).slice(-5);
+      let avgDays = recent.length ? recent.map(t=>Math.abs(daysLeft(t.due))).reduce((a,b)=>a+b,0)/recent.length : 2;
+      let prio = avgDays<1.5 ? 'High' : (avgDays<3 ? 'Medium' : 'Low');
+      advice += `<br/><b>Smart Suggestion:</b> For tasks due in ${Math.round(avgDays)} days, use <span class="badge">${prio}</span> priority.`;
+      return advice;
+    }
+    function daysLeft(dateStr) {
+      if(!dateStr) return 999;
+      let d = new Date(dateStr);
+      let now = new Date();
+      return Math.ceil((d-now)/(1000*60*60*24));
+    }
+    // Task Templates
+    function renderTaskTemplates() {
+      let tpls = getTaskTemplates();
+      let sel = document.getElementById('taskTemplate');
+      if(!sel) return;
+      sel.innerHTML = `<option value="">None</option>`;
+      tpls.forEach((tpl,i)=> {
+        sel.innerHTML += `<option value="${i}">${tpl.title}</option>`;
+      });
+    }
+    function saveTaskTemplate() {
+      let title = taskTitle.value;
+      if(!title) return alert('Enter a task to save as template.');
+      let tpls = getTaskTemplates();
+      tpls.push({
+        title: taskTitle.value,
+        due: taskDue.value,
+        priority: taskPriority.value,
+        category: taskCategory.value,
+        recurring: taskRecurring.value
+      });
+      setTaskTemplates(tpls);
+      renderTaskTemplates();
+      alert('Template saved!');
+    }
+    function deleteTaskTemplate() {
+      let idx = taskTemplate.value;
+      if(idx==='') return;
+      let tpls = getTaskTemplates();
+      tpls.splice(idx,1);
+      setTaskTemplates(tpls);
+      renderTaskTemplates();
+      alert('Template deleted.');
+    }
+    document.getElementById('taskTemplate').onchange = function() {
+      let idx = this.value;
+      if(idx==='') return;
+      let tpl = getTaskTemplates()[idx];
+      taskTitle.value = tpl.title;
+      taskDue.value = tpl.due;
+      taskPriority.value = tpl.priority;
+      taskCategory.value = tpl.category;
+      taskRecurring.value = tpl.recurring;
+    };
+    document.getElementById('taskForm').onsubmit = function(e) {
+      e.preventDefault();
+      let prio = taskPriority.value;
+      if(prio==='smart') {
+        // Use smart suggestion
+        let days = daysLeft(taskDue.value);
+        prio = days<=1 ? 'High' : (days<=3 ? 'Medium' : 'Low');
+      }
+      addTask({
+        title: taskTitle.value,
+        due: taskDue.value,
+        priority: prio,
+        category: taskCategory.value,
+        recurring: taskRecurring.value,
+        done: false
+      });
+      this.reset();
+    };
+
+    /* ========== BUDGET TRACKER MODULE ========== */
+    function getBudget() { return loadData('budget'); }
+    function setBudget(data) { saveData('budget', data); }
+    function getBudgetGoal() { return loadData('budgetGoal', {goal:0, month:''}); }
+    function setBudgetGoal(obj) { saveData('budgetGoal', obj);}
+    function addBudgetEntry(entry) {
+      const data = getBudget();
+      data.push(entry);
+      setBudget(data);
+      renderBudget();
+      renderDashboard();
+    }
+    function removeBudgetEntry(idx) {
+      const data = getBudget();
+      data.splice(idx,1);
+      setBudget(data);
+      renderBudget();
+      renderDashboard();
+    }
+    function setBudgetGoalPrompt() {
+      let month = prompt('Enter month for goal (YYYY-MM):', (new Date()).toISOString().slice(0,7));
+      if(!month) return;
+      let goal = prompt('Enter budget goal for '+month+':', 1000);
+      if(isNaN(goal)||goal<0) return alert('Invalid goal.');
+      setBudgetGoal({goal:Number(goal), month});
+      renderBudget();
+      renderDashboard();
+    }
+    function renderBudget() {
+      const data = getBudget();
+      const list = document.getElementById('budgetList');
+      list.innerHTML = '';
+      let income = 0, expense = 0;
+      let month = (new Date()).toISOString().slice(0,7);
+      let monthData = data.filter(b=> (b.month||month) === month);
+      monthData.forEach((b,i) => {
+        if(b.type==='Income') income += Number(b.amount);
+        else expense += Number(b.amount);
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span>
+            <b>${b.type}</b> 
+            <span class="badge">${b.category}</span>
+            <span class="badge">${b.amount}</span>
+            <span class="badge">${b.month||month}</span>
+          </span>
+          <button class="btn small danger" onclick="removeBudgetEntry(${i})">Delete</button>
+        `;
+        list.appendChild(li);
+      });
+      let goalObj = getBudgetGoal();
+      let goal = (goalObj.month===month)?goalObj.goal:0;
+      document.getElementById('budgetOverview').innerHTML = `
+        <b>Total Income:</b> ${income} <br/>
+        <b>Total Expense:</b> ${expense} <br/>
+        <b>Balance:</b> ${income-expense} <br/>
+        <b>Monthly Goal:</b> ${goal?goal:'(set goal)'} <br/>
+        <b>Progress:</b> ${goal?Math.round(100*expense/goal):'--'}%
+      `;
+      budgetModuleDrawChart(monthData);
+      document.getElementById('budgetModuleAdvice').innerHTML = budgetAdvice(monthData, goal);
+    }
+    document.getElementById('budgetForm').onsubmit = function(e) {
+      e.preventDefault();
+      addBudgetEntry({
+        type: budgetType.value,
+        amount: budgetAmount.value,
+        category: budgetCategory.value,
+        month: budgetMonth.value || (new Date()).toISOString().slice(0,7)
+      });
+      this.reset();
+    };
+    function budgetAdvice(data, goal) {
+      let expense = data.filter(b=>b.type==='Expense').reduce((a,b)=>a+Number(b.amount),0);
+      let income = data.filter(b=>b.type==='Income').reduce((a,b)=>a+Number(b.amount),0);
+      if(!data.length) return '';
+      let advice = '';
+      if(goal && expense>goal) advice += `<span class="badge danger">Over budget!</span> `;
+      if(goal && expense>0.8*goal && expense<=goal) advice += `<span class="badge">Near budget limit.</span> `;
+      // Spending recommendation
+      let cats = {};
+      data.filter(b=>b.type==='Expense').forEach(b=>cats[b.category]= (cats[b.category]||0)+Number(b.amount));
+      let maxCat = Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
+      if(maxCat && maxCat[1]>0.4*expense) advice += `<br/>Tip: Consider reducing <b>${maxCat[0]}</b> spending.`;
+      return advice;
+    }
+    // Budget Chart (Canvas)
+    function budgetModuleDrawChart(data) {
+      let canvas = document.getElementById('budgetModuleChart');
+      let ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      // Show income vs expense by category
+      let cats = {};
+      data.forEach(b=>{
+        if(!cats[b.category]) cats[b.category]={inc:0,exp:0};
+        if(b.type==='Income') cats[b.category].inc+=Number(b.amount);
+        else cats[b.category].exp+=Number(b.amount);
+      });
+      let catNames = Object.keys(cats);
+      let maxVal = Math.max(1, ...catNames.map(c=>Math.max(cats[c].inc,cats[c].exp)));
+      catNames.forEach((c,i)=>{
+        ctx.fillStyle = "#06d6a0";
+        ctx.fillRect(40+i*40, 90-80*cats[c].inc/maxVal, 12, 80*cats[c].inc/maxVal);
+        ctx.fillStyle = "#ef476f";
+        ctx.fillRect(56+i*40, 90-80*cats[c].exp/maxVal, 12, 80*cats[c].exp/maxVal);
+        ctx.fillStyle = "#888";
+        ctx.font = "10px Segoe UI";
+        ctx.fillText(c.slice(0,5), 40+i*40, 98);
+      });
+      ctx.fillStyle="#06d6a0"; ctx.fillRect(10,10,10,10);
+      ctx.fillStyle="#ef476f"; ctx.fillRect(10,25,10,10);
+      ctx.fillStyle="#333"; ctx.font="10px Segoe UI";
+      ctx.fillText("Income", 25, 18); ctx.fillText("Expense", 25, 33);
+    }
+
+    /* ========== NOTES MODULE ========== */
+    function getNotes() { return loadData('notes'); }
+    function setNotes(notes) { saveData('notes', notes); }
+    function getNoteTemplates() { return loadData('noteTemplates'); }
+    function setNoteTemplates(tpls) { saveData('noteTemplates', tpls);}
+    function addNote(note) {
+      const notes = getNotes();
+      notes.unshift(note); // recent first
+      setNotes(notes);
+      renderNotes();
+      renderDashboard();
+    }
+    function removeNote(idx) {
+      const notes = getNotes();
+      notes.splice(idx,1);
+      setNotes(notes);
+      renderNotes();
+      renderDashboard();
+    }
+    function renderNotes() {
+      const notes = getNotes();
+      const list = document.getElementById('noteList');
+      const search = document.getElementById('noteSearch').value.toLowerCase();
+      list.innerHTML = '';
+      notes.forEach((n,i) => {
+        if(search && !n.title.toLowerCase().includes(search) && !n.content.toLowerCase().includes(search) && !n.tags.toLowerCase().includes(search)) return;
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span>
+            <b>${n.title}</b>
+            ${n.category ? `<span class="badge">${n.category}</span>` : ''}
+            ${n.tags ? `<span class="badge">${n.tags}</span>` : ''}
+            <br/>
+            <span>${renderMarkdown(n.content)}</span>
+          </span>
+          <button class="btn small danger" onclick="removeNote(${i})">Delete</button>
+        `;
+        list.appendChild(li);
+      });
+      renderNoteTemplates();
+      // Related notes
+      let idx = 0;
+      if(notes.length && search) {
+        document.getElementById('relatedNotes').innerHTML = relatedNotes(search, notes);
+      } else document.getElementById('relatedNotes').innerHTML = '';
+    }
+    // Note Templates
+    function renderNoteTemplates() {
+      let tpls = getNoteTemplates();
+      let sel = document.getElementById('noteTemplate');
+      if(!sel) return;
+      sel.innerHTML = `<option value="">None</option>`;
+      tpls.forEach((tpl,i)=> {
+        sel.innerHTML += `<option value="${i}">${tpl.title}</option>`;
+      });
+    }
+    function saveNoteTemplate() {
+      let title = noteTitle.value;
+      if(!title) return alert('Enter a note to save as template.');
+      let tpls = getNoteTemplates();
+      tpls.push({
+        title: noteTitle.value,
+        content: noteContent.value,
+        category: noteCategory.value,
+        tags: noteTags.value
+      });
+      setNoteTemplates(tpls);
+      renderNoteTemplates();
+      alert('Template saved!');
+    }
+    function deleteNoteTemplate() {
+      let idx = noteTemplate.value;
+      if(idx==='') return;
+      let tpls = getNoteTemplates();
+      tpls.splice(idx,1);
+      setNoteTemplates(tpls);
+      renderNoteTemplates();
+      alert('Template deleted.');
+    }
+    document.getElementById('noteTemplate').onchange = function() {
+      let idx = this.value;
+      if(idx==='') return;
+      let tpl = getNoteTemplates()[idx];
+      noteTitle.value = tpl.title;
+      noteContent.value = tpl.content;
+      noteCategory.value = tpl.category;
+      noteTags.value = tpl.tags;
+    };
+    document.getElementById('noteForm').onsubmit = function(e) {
+      e.preventDefault();
+      addNote({
+        title: noteTitle.value,
+        content: noteContent.value,
+        category: noteCategory.value,
+        tags: noteTags.value
+      });
+      this.reset();
+    };
+    document.getElementById('noteSearch').oninput = renderNotes;
+    function relatedNotes(query, notes) {
+      // Suggest notes with similar tags or content
+      let q = query.toLowerCase();
+      let rel = notes.filter(n=>
+        n.title.toLowerCase().includes(q) ||
+        n.content.toLowerCase().includes(q) ||
+        n.tags.toLowerCase().includes(q)
+      );
+      if(rel.length<2) return '';
+      return '<b>Related Notes:</b> ' + rel.slice(1,4).map(n=>n.title).join(', ');
+    }
+
+    /* ========== MARKDOWN RENDERING (BASIC) ========== */
+    function renderMarkdown(text) {
+      return text
+        .replace(/(?:__|[*#])|\[(.*?)\]\((.*?)\)/g, '') // strip markdown links
+        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+        .replace(/\*(.*?)\*/g, '<i>$1</i>')
+        .replace(/\n/g, '<br/>');
+    }
+
+    /* ========== DASHBOARD VIEW ========== */
+    function renderDashboard() {
+      // Tasks
+      const tasks = getTasks().filter(t=>!t.done).sort((a,b)=>daysLeft(a.due)-daysLeft(b.due)).slice(0,5);
+      const tlist = document.getElementById('dashboardTasks');
+      tlist.innerHTML = '';
+      tasks.forEach(t => {
+        const li = document.createElement('li');
+        li.textContent = `${t.title} (${t.due || 'No date'})`;
+        tlist.appendChild(li);
+      });
+      // Task stats
+      const allTasks = getTasks();
+      const total = allTasks.length;
+      const done = allTasks.filter(t=>t.done).length;
+      document.getElementById('dashboardTaskStats').innerHTML = 
+        `<b>Completion:</b> ${done}/${total} (${total?Math.round(100*done/total):0}%)`;
+      // Task heatmap
+      drawTaskHeatmap(allTasks);
+
+      // Budget
+      const data = getBudget();
+      let month = (new Date()).toISOString().slice(0,7);
+      let monthData = data.filter(b=> (b.month||month) === month);
+      let income = monthData.filter(b=>b.type==='Income').reduce((a,b)=>a+Number(b.amount),0);
+      let expense = monthData.filter(b=>b.type==='Expense').reduce((a,b)=>a+Number(b.amount),0);
+      let goalObj = getBudgetGoal();
+      let goal = (goalObj.month===month)?goalObj.goal:0;
+      document.getElementById('dashboardBudget').innerHTML = `
+        <b>Balance:</b> ${income-expense} <br/>
+        <b>Income:</b> ${income} | <b>Expense:</b> ${expense} <br/>
+        <b>Goal:</b> ${goal?goal:'(set goal)'}
+      `;
+      drawBudgetChart(monthData);
+      document.getElementById('budgetAdvice').innerHTML = budgetAdvice(monthData, goal);
+
+      // Notes
+      const notes = getNotes().slice(0,3);
+      const nlist = document.getElementById('dashboardNotes');
+      nlist.innerHTML = '';
+      notes.forEach(n => {
+        const li = document.createElement('li');
+        li.textContent = n.title;
+        nlist.appendChild(li);
+      });
+      // Related notes
+      document.getElementById('dashboardRelatedNotes').innerHTML = relatedNotes(notes[0]?.title||'', notes);
+
+      // Achievements
+      renderAchievements();
+    }
+
+    /* ========== DATA VISUALIZATION: CHARTS & HEATMAPS ========== */
+    function drawBudgetChart(data) {
+      let canvas = document.getElementById('budgetChart');
+      let ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      // Show total income/expense per week for the month
+      let weeks = [0,0,0,0,0], exps=[0,0,0,0,0];
+      let month = (new Date()).toISOString().slice(0,7);
+      data.forEach(b=>{
+        let d = b.month||month;
+        let week = 0;
+        if(b.date) {
+          let day = Number(b.date.slice(-2));
+          week = Math.floor((day-1)/7);
+        }
+        if(b.type==='Income') weeks[week]+=Number(b.amount);
+        else exps[week]+=Number(b.amount);
+      });
+      for(let i=0;i<5;i++) {
+        ctx.fillStyle = "#06d6a0";
+        ctx.fillRect(20+i*35, 70-60*weeks[i]/Math.max(...weeks,1), 12, 60*weeks[i]/Math.max(...weeks,1));
+        ctx.fillStyle = "#ef476f";
+        ctx.fillRect(35+i*35, 70-60*exps[i]/Math.max(...exps,1), 12, 60*exps[i]/Math.max(...exps,1));
+        ctx.fillStyle = "#888";
+        ctx.font = "10px Segoe UI";
+        ctx.fillText("W"+(i+1), 20+i*35, 82);
+      }
+    }
+    function drawTaskHeatmap(tasks) {
+      let canvas = document.getElementById('taskHeatmap');
+      let ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      // Show last 4 weeks, 7 days per week
+      let map = Array(28).fill(0);
+      let now = new Date();
+      tasks.forEach(t=>{
+        if(t.done && t.due) {
+          let d = new Date(t.due);
+          let diff = Math.floor((now-d)/(1000*60*60*24));
+          if(diff>=0 && diff<28) map[27-diff]++;
+        }
+      });
+      for(let i=0;i<28;i++) {
+        let x = (i%7)*20, y = Math.floor(i/7)*20;
+        let level = map[i];
+        ctx.fillStyle = level>2 ? "#0077b6" : level>1 ? "#00b4d8" : level>0 ? "#90e0ef" : "#e0e0e0";
+        ctx.fillRect(x+3,y+3,14,14);
+      }
+    }
+
+    /* ========== GAMIFICATION: ACHIEVEMENTS, STREAKS, POINTS ========== */
+    function renderAchievements() {
+      let stats = getTaskStats();
+      let html = '';
+      if(stats.streak>=7) html+=`<span class="badge achieve">7-day Streak!</span> `;
+      if(stats.points>=100) html+=`<span class="badge achieve">100+ Points!</span> `;
+      if(getTasks().filter(t=>t.done).length>=20) html+=`<span class="badge achieve">20 Tasks Done!</span>`;
+      document.getElementById('dashboardAchievements').innerHTML = html||'Complete tasks to earn badges!';
+    }
+
+    /* ========== INIT & LOADING ========== */
+    showDailyQuote();
+    renderDashboard();
+    // Expose for HTML
+    window.showSection = showSection;
+    window.toggleTaskDone = toggleTaskDone;
+    window.removeTask = removeTask;
+    window.removeBudgetEntry = removeBudgetEntry;
+    window.removeNote = removeNote;
+    window.saveTaskTemplate = saveTaskTemplate;
+    window.deleteTaskTemplate = deleteTaskTemplate;
+    window.saveNoteTemplate = saveNoteTemplate;
+    window.deleteNoteTemplate = deleteNoteTemplate;
+    window.setTheme = setTheme;
+    window.setBudgetGoalPrompt = setBudgetGoalPrompt;
+  </script>
+</body>
+</html>
